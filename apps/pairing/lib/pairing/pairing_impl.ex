@@ -14,13 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule SRP.Impl do
+defmodule Pairing.Impl do
   @path "/var/lib/happi/"
   @setup_code_filename "setup_code.txt"
-
-  @generator <<5>>
-  @version :"6a"
-  @prime File.read!("lib/srp/prime.bin")
 
   @doc """
   reset()

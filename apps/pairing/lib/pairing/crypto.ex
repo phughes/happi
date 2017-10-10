@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule SRP.Crypto do
+defmodule Pairing.Crypto do
   @moduledoc """
-  SRP.Crypto is an implementation of the Session Remote Protocol 
+  Pairing.Crypto is an implementation of the Session Remote Protocol 
   cryptographic functions modified to match the ones used in 
   Apple's HomeKit Accessory Protocol Specification.
   
@@ -68,7 +68,7 @@ defmodule SRP.Crypto do
   use Bitwise
   # modulus (prime) and generator are specified by the 3072 bit group of RFC-5054
   @generator <<5>>
-  @modulus File.read!("lib/srp/prime.bin")
+  @modulus File.read!("lib/pairing/prime.bin")
   @version :"6a"
 
   @doc """
