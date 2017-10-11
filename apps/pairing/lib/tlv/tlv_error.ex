@@ -20,9 +20,7 @@ defmodule TLVError do
   They are used as the value of TLVs of error TLVerror.error.
   """
 
-  @doc """
-  TLVErrors are single bytes on the wire, we convert them to atoms for easier debugging.
-  """
+  # TLVErrors are single bytes on the wire, we convert them to atoms for easier debugging.
   @type tlv_error :: atom
 
   @doc """

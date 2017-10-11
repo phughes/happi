@@ -61,8 +61,7 @@ defmodule Pairing.Crypto do
     host_public_key = multiplier*verifier + generator^host_private_key % prime
     client_public_key = <read from client>
     random_scrambling_parameter = SHA512(PAD(client_public_key) | PAD(host_public_key))
-    <premaster secret> = (client_public_key * (verifier^random_scrambling_parameter % prime))use  ^ host_private_key % prime
-
+    <premaster secret> = (client_public_key * (verifier^random_scrambling_parameter % prime)) ^ host_private_key % prime
   """
 
   use Bitwise
@@ -184,6 +183,34 @@ defmodule Pairing.Crypto do
   @spec session_key(binary) :: binary
   def session_key(premaster_secret) do
     :crypto.hash(:sha512, premaster_secret)
+  end
+
+  @doc """
+    Compute the client session proof.
+
+    M_c = H(H(N) ^ H(g), H(I), s, A, B, K_c)
+  """
+  @spec client_session_proof(String.t, binary, binary, binary, binary) :: binary
+  def client_session_proof(username, salt, client_public_key, server_public_key, session_hash) do
+    mod_hash = :crypto.hash(:sha512, @modulus)
+    gen_hash = :crypto.hash(:sha512, @generator)
+    
+    # The wiki page says H(N) ^ H(g), but it also says all exponents are computed against the
+    # prime modulus. ¯\_(ツ)_/¯ 
+    first = :crypto.mod_pow(mod_hash, gen_hash, @modulus)
+    username_hash = :crypto.hash(:sha512, username)
+
+    :crypto.hash(:sha512, [first, username_hash, salt, client_public_key, server_public_key, session_hash])
+  end
+
+  @doc """
+    Compute the host session proof.
+
+    M_s = H(A, M_c, K_s)
+  """
+  @spec host_session_proof(binary, binary, binary) :: binary
+  def host_session_proof(client_public_key, client_session_proof, session_hash) do
+    :crypto.hash(:sha512, [client_public_key, client_session_proof, session_hash])
   end
 
   @doc """

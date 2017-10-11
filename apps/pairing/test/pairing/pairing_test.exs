@@ -28,6 +28,9 @@ defmodule PairingTest do
   def salt, do: File.read! "test/pairing/values/salt.bin"
   def session_key, do: File.read! "test/pairing/values/session_key.bin"
   def verifier, do: File.read! "test/pairing/values/verifier.bin"
+  def client_session_proof, do: File.read! "test/pairing/values/client_session_proof.bin"
+  def host_session_proof, do: File.read! "test/pairing/values/host_session_proof.bin"
+  
   def username, do: "alice"
   def password, do: "password123"
 
@@ -91,5 +94,19 @@ defmodule PairingTest do
     key = Pairing.Crypto.session_key(host_secret)
 
     assert key == session_key()
+  end
+
+  test "client session proof" do
+    session_hash = :crypto.hash(:sha512, session_key())
+    h_session_proof = Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_hash)
+
+    assert h_session_proof == host_session_proof()
+  end
+
+  test "host session proof" do
+    session_hash = :crypto.hash(:sha512, session_key())
+    c_session_proof = Pairing.Crypto.client_session_proof(username(), salt(), a_public(), b_public(), session_hash)
+
+    assert c_session_proof == client_session_proof()
   end
 end
