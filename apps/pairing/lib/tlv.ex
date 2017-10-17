@@ -77,7 +77,7 @@ defmodule TLV do
 
   # Converts integers to binaries.
   defp value_to_binary(type, integer) when is_integer(integer) do
-    has_digits = ((integer >>> 8) || 0) > 0
+    has_digits = (integer >>> 8) > 0
     if has_digits do
       value_to_binary(type, integer >>> 8) <> <<integer::8>>
     else
