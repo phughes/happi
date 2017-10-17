@@ -83,4 +83,24 @@ defmodule Pairing.Impl do
     invalid_codes = ["000-00-000", "111-11-111", "222-22-222", "333-33-333", "444-44-444", "555-55-555", "666-66-666", "777-77-777", "888-88-888", "999-99-999", "123-45-678", "876-54-321"]
     Enum.any?(invalid_codes, &(&1 == code)) == false && String.match?(code, ~r/\d{3}-\d{2}-\d{3}/)
   end
+
+  # M5 request helpers.
+  @doc """
+
+  """
+  def long_term_keys() do
+    Ed25519.generate_key_pair()
+  end
+  
+  @doc """
+    Derive a key of some sort using HKDF-SHA-512
+    HAP Spec 4.7.5.2-2
+  """
+  # @spec ()
+  def iOS_device_x(shared_secret) do
+    salt = "Pair-Setup-Controller-Sign-Salt" # Someone doesn't know that salts are supposed to be random.
+    info = "Pair-Setup-Controller-Sign-Info"
+    HKDF.derive(:sha512, shared_secret, 32, salt, info)
+  end
+
 end

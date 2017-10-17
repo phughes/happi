@@ -73,6 +73,7 @@ defmodule Pairing.Crypto do
   @doc """
     Generates a new 16 byte random salt value.
   """
+  @spec salt() :: binary
   def salt do
     :crypto.strong_rand_bytes(16)
   end
@@ -80,6 +81,7 @@ defmodule Pairing.Crypto do
   @doc """
     Generates a new 32 byte private key.
   """
+  @spec private_key() :: binary
   def private_key do
     :crypto.strong_rand_bytes(32)
   end
