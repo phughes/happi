@@ -32,15 +32,15 @@ config :nerves_network, :default,
     key_mgmt: String.to_atom(key_mgmt)
   ]
 
-config :api, Api.Endpoint,
-  http: [port: 80],
-  url: [host: "localhost", port: 80],
-  secret_key_base: "#############################",
-  root: Path.dirname(__DIR__),
-  server: true,
-  render_errors: [accepts: ~w(html json)],
-  pubsub: [name: Nerves.PubSub],
-  code_reloader: false
+# config :api, Api.Endpoint,
+#   http: [port: 80],
+#   url: [host: "localhost", port: 80],
+#   secret_key_base: "#############################",
+#   root: Path.dirname(__DIR__),
+#   server: true,
+#   render_errors: [accepts: ~w(html json)],
+#   pubsub: [name: Nerves.PubSub],
+#   code_reloader: false
 
 config :logger, level: :debug
 

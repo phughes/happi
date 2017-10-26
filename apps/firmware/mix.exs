@@ -53,7 +53,8 @@ defmodule Firmware.Mixfile do
   # Type "mix help deps" for more examples and options
   def deps do
     [
-      {:api, in_umbrella: true},
+      # {:api, in_umbrella: true},
+      {:mdns, "~> 0.1.6"},      
       {:nerves_network, "~> 0.3.0"},
       {:nerves, "~> 0.7", runtime: false}
     ] ++ deps(@target)

@@ -16,7 +16,6 @@ defmodule Happi.Mixfile do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:mdns, "~> 0.1.6"},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false}
     ]
   end
