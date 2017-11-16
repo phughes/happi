@@ -11,7 +11,7 @@ defmodule Firmware do
     children = [
       supervisor(Phoenix.PubSub.PG2, [Nerves.PubSub, [poolsize: 1]]),
       worker(Task, [fn -> start_network() end], restart: :transient),
-      {Pairing, :test}
+      {HAP.Pairing, []}
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

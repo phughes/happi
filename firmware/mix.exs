@@ -64,7 +64,7 @@ defmodule Firmware.Mixfile do
       {:nerves_runtime, "~> 0.4"},
       {:nerves_network, "~> 0.3"},
       {:ui, path: "../ui"},
-      {:pairing, path: "../pairing"},
+      {:hap, path: "../hap"},
     ]
   end
 

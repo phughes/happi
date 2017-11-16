@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule TLVMethod do
+defmodule HAP.TLV.TLVMethod do
   @moduledoc """
   TLV Methods are defined in table 4.4 of the HAP-Specification-Non-Commercial-Version.pdf
   They are used as the value of TLVs of type TLVType.method.
@@ -46,7 +46,7 @@ defmodule TLVMethod do
   @spec method_from_integer(integer) :: tlv_method
   def method_from_integer(integer) do
     case integer do
-      0x00 -> :reserved
+      0x00 -> :pair_setup_non_mfi
       0x01 -> :pair_setup
       0x02 -> :pair_verify
       0x03 -> :add_pairing
@@ -56,8 +56,8 @@ defmodule TLVMethod do
     end
   end
 
-  @spec reserved :: tlv_method
-  def reserved, do: :reserved
+  @spec pair_setup_non_mfi :: tlv_method
+  def pair_setup_non_mfi, do: :pair_setup_non_mfi
 
   @spec pair_setup :: tlv_method  
   def pair_setup, do: :pair_setup

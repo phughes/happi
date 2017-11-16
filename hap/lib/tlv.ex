@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule TLV do
+defmodule HAP.TLV do
   use Bitwise
   @moduledoc """
   TLV is an implementation of the TLV8 (type-length-value) format
@@ -23,36 +23,41 @@ defmodule TLV do
   TLV aims to provide a rount-trip-able path from data to TLV. 
   """
 
+  alias HAP.TLV.TLVError, as: TLVError
+  alias HAP.TLV.TLVMethod, as: TLVMethod
+  alias HAP.TLV.TLVType, as: TLVType
+  alias HAP.TLV, as: TLV
+
   @enforce_keys [:type, :value]
   defstruct [:type, :value]
 
   @doc """
-  to_binary.
+  encode.
   Returns an encoded binary for a list of tlv structs.
 
   ## Examples
 
-      iex> TLV.to_binary [%TLV{type: TLVType.state, value: 0}, %TLV{type: TLVType.state, value: 1025}]
+      iex> TLV.encode [%TLV{type: TLVType.state, value: 0}, %TLV{type: TLVType.state, value: 1025}]
       <<6, 1, 0, 6, 2, 4, 1>>
 
   """
-  @spec to_binary([%TLV{}]) :: bitstring
-  def to_binary(list) when is_list(list) do
-    Enum.reduce(list, <<>>, &(&2 <> to_binary(&1)))
+  @spec encode([%TLV{}]) :: bitstring
+  def encode(list) when is_list(list) do
+    Enum.reduce(list, <<>>, &(&2 <> encode(&1)))
   end
 
   @doc """
-  to_binary
+  encode
   Returns an encoded binary for the tlv struct.
 
   ## Examples
 
-      iex> TLV.to_binary %TLV{type: TLVType.state, value: 0}
+      iex> TLV.encode %TLV{type: TLVType.state, value: 0}
       <<6, 1, 0>>
 
   """
-  @spec to_binary(%TLV{}) :: bitstring  
-  def to_binary(%TLV{type: t, value: v}) do
+  @spec encode(%TLV{}) :: bitstring  
+  def encode(%TLV{type: t, value: v}) do
     value_to_binary(t, v)
     |> split_binary
     |> convert_to_tlv(t)
@@ -95,11 +100,14 @@ defmodule TLV do
 
   # Splits binaries that are more than 255 binary into 
   # a list of 255 byte binaries.
-  defp split_binary(binary) do
-    binary
-    |> Stream.unfold(&String.split_at(&1, 0xFF))
-    |> Enum.take_while(&(&1 != <<>>))
+  defp split_binary(binary) when byte_size(binary) > 255 do
+    # binary
+    # |> Stream.unfold(&binary_part(&1, 0, 0xFF))
+    # |> Enum.take_while(&(&1 != <<>>))
+    length = byte_size(binary)
+    [binary_part(binary, 0, 0xFF) | split_binary(binary_part(binary, 0xFF, length - 0xFF))]
   end
+  defp split_binary(binary), do: [binary]
 
   # Builds a separator TLV.
   defp convert_to_tlv(_, :separator) do
@@ -115,15 +123,15 @@ defmodule TLV do
   end
 
   @doc """
-  to_struct.
+  decode.
   Returns a list of TLV structs for the given binary.
 
   ## Examples
 
-      iex> TLV.to_struct <<6, 1, 0, 6, 2, 4, 1>>
+      iex> TLV.decode <<6, 1, 0, 6, 2, 4, 1>>
       [%TLV{type: TLVType.state, value: 0}, %TLV{type: TLVType.state, value: 1025}]
   """
-  def to_struct(binary) do
+  def decode(binary) do
     # The binary may contain more than one TLV item.
     extract_fragment(binary)
   end

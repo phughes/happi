@@ -16,6 +16,8 @@
 
 defmodule PairingTest do
   use ExUnit.Case
+
+  alias HAP.Pairing
   # doctest SRP
   doctest Pairing.Impl
 
@@ -96,14 +98,14 @@ defmodule PairingTest do
     assert key == session_key()
   end
 
-  test "client session proof" do
+  test "host session proof" do
     session_hash = :crypto.hash(:sha512, session_key())
     h_session_proof = Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_hash)
 
     assert h_session_proof == host_session_proof()
   end
 
-  test "host session proof" do
+  test "client session proof" do
     session_hash = :crypto.hash(:sha512, session_key())
     c_session_proof = Pairing.Crypto.client_session_proof(username(), salt(), a_public(), b_public(), session_hash)
 

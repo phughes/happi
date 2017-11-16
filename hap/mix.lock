@@ -1,0 +1,6 @@
+%{"ed25519": {:hex, :ed25519, "1.0.2", "81757acafc6ea02bdeb2f720dc6dafa8ff905edd6a2142872db5dff463761569", [], [], "hexpm"},
+  "eunit_formatters": {:hex, :eunit_formatters, "0.3.1", "7a6fc351eb5b873e2356b8852eb751e20c13a72fbca03393cf682b8483509573", [], [], "hexpm"},
+  "hkdf": {:hex, :hkdf, "0.1.0", "24f5bb27eb2b00f183004e403eaea813ed3ad7da0c3ddec259871b10ae3fa4a9", [], [], "hexpm"},
+  "mix_eunit": {:hex, :mix_eunit, "0.3.0", "0e3e23bbc1f428663ba6c0ce52731ea7bff381fcde1ea9198a1bd83ac26305b2", [], [{:eunit_formatters, "~> 0.3.1", [hex: :eunit_formatters, repo: "hexpm", optional: false]}], "hexpm"},
+  "nerves_dnssd": {:hex, :nerves_dnssd, "0.2.0", "d675dd77a88b9edfccbdb5135ada752da55a9608fe0f60e3d12e8d6fdb3b2f39", [], [{:mix_eunit, "~> 0.3.0", [hex: :mix_eunit, repo: "hexpm", optional: false]}], "hexpm"},
+  "system_registry": {:hex, :system_registry, "0.6.0", "31642177e6002d3cff2ada3553ed4e9c0a6ca015797d62d7d17c0ab8696185fc", [], [], "hexpm"}}

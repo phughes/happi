@@ -14,19 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Pairing do
-  use GenServer
+defmodule Ui.Plugs.DecodeTLV do
+  import Plug.Conn
 
-  def start_link(_args) do
-    import Supervisor.Spec, warn: false
-    # Define workers and child supervisors to be supervised
-    children = [
-      {Pairing.Bonjour, []}
-    ]
+  alias HAP.TLV
+  require Logger
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Pairing.Supervisor]
-    Supervisor.start_link(children, opts)
+  def init(options), do: options
+
+  def call(conn, _options) do
+    {:ok, body, conn} = Plug.Conn.read_body(conn, length: 1_000_000)
+    tlvs = TLV.decode(body)
+    Logger.info "TLVs: #{inspect(tlvs)}"
+    assign(conn, :tlvs, tlvs)
   end
+
 end

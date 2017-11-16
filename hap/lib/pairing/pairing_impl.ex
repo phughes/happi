@@ -14,9 +14,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Pairing.Impl do
-  @path "/var/lib/happi/"
+defmodule HAP.Pairing.Impl do
+  @path "#{Application.get_env(:hap, HAP.Pairing.Impl)[:user_partition]}/happi/"
   @setup_code_filename "setup_code.txt"
+
+  @doc """
+    setup()
+    Initializes the happi directory if it hasn't been created yet. 
+  """
+  def setup() do
+    File.mkdir(@path)
+    File.write!(@path <> @setup_code_filename, generate_setup_code())
+  end
 
   @doc """
   reset()
@@ -31,8 +40,7 @@ defmodule Pairing.Impl do
   @spec reset() :: atom
   def reset() do
     File.rm_rf!(@path)
-    File.mkdir!(@path)
-    File.write!(@path <> @setup_code_filename, generate_setup_code())
+    setup()
   end
 
   @doc """
@@ -46,7 +54,6 @@ defmodule Pairing.Impl do
         else
           {:error, :invalid_code}
         end
-      error -> error
     end
   end
 

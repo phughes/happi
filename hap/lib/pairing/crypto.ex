@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Pairing.Crypto do
+defmodule HAP.Pairing.Crypto do
   @moduledoc """
   Pairing.Crypto is an implementation of the Session Remote Protocol 
   cryptographic functions modified to match the ones used in 

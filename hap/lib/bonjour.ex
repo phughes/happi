@@ -1,10 +1,11 @@
-defmodule Pairing.Bonjour do
+defmodule HAP.Bonjour do
   # @moduledoc false
 
   use GenServer
   require Logger
 
   def start_link(_args) do
+    Logger.warn "#### STARTING BONJOUR ####"
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
@@ -45,7 +46,8 @@ defmodule Pairing.Bonjour do
     model_name = "happi"
     status_flag = status_flag()
     config_number = current_config()
-    ["c#=#{config_number}", "ff=1", "id=#{pairing_id}", "md=#{model_name}", "pv=1.0", "s#=1", "sf=#{status_flag}", "ci=2"]
+    feature_flag = 0 # Only MFi certified accessories should set this to 1. 
+    ["c#=#{config_number}", "ff=#{feature_flag}", "id=#{pairing_id}", "md=#{model_name}", "pv=1.0", "s#=1", "sf=#{status_flag}", "ci=2"]
   end
 
   @doc """
@@ -53,7 +55,7 @@ defmodule Pairing.Bonjour do
   """
   def accessory_name() do
     # We should probably store this in the System Registry.
-    "Patrick's Accessory."
+    "Patrick's Accessory"
   end
 
   @doc """

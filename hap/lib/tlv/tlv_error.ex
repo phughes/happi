@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule TLVError do
+defmodule HAP.TLV.TLVError do
   @moduledoc """
   TLV Errors are defined in table 4.5 of the HAP-Specification-Non-Commercial-Version.pdf
   They are used as the value of TLVs of error TLVerror.error.

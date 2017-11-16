@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure your application as:
 #
-#     config :tlv, key: :value
+#     config :hap, key: :value
 #
 # and access this configuration in your application as:
 #
-#     Application.get_env(:tlv, :key)
+#     Application.get_env(:hap, :key)
 #
 # You can also configure a 3rd-party app:
 #
@@ -33,3 +33,6 @@ config :system_registry, SystemRegistry.TermStorage,
   scopes: [
     [:state, :hap, :config],
   ]
+
+config :hap, HAP.Pairing.Impl,
+  user_partition: "/Users/pat"

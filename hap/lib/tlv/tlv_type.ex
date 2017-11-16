@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule TLVType do
+defmodule HAP.TLV.TLVType do
   @moduledoc """
   TLV Types are defined in table 4.6 of the HAP-Specification-Non-Commercial-Version.pdf
   They are used to declare the type of the value they are paired with.
