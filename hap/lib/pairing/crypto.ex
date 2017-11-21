@@ -102,8 +102,7 @@ defmodule HAP.Pairing.Crypto do
 
   @spec random_scrambling_parameter(binary, binary) :: binary  
   def random_scrambling_parameter(client_key, host_key) do
-    # random_scrambling_parameter = SHA512(PAD(client_public_key) | PAD(host_public_key))  
-    :crypto.hash(:sha512, pad(client_key) <> pad(host_key))
+    :crypto.hash(:sha512, [client_key, host_key])
   end
   
   @doc """
@@ -169,7 +168,7 @@ defmodule HAP.Pairing.Crypto do
   @spec host_premaster_secret(binary, binary, binary, binary) :: binary
   def host_premaster_secret(verifier, host_public_key, host_private_key, client_public_key) do
     # 'pow(v, u, N)' power
-    power = :crypto.mod_pow(verifier,random_scrambling_parameter(client_public_key, host_public_key), @modulus) |> :binary.decode_unsigned()
+    power = :crypto.mod_pow(verifier, random_scrambling_parameter(client_public_key, host_public_key), @modulus) |> :binary.decode_unsigned()
     # 'A' client public_key
     int_client_public_key = client_public_key |> :binary.decode_unsigned()
     # 'A * pow(v, u, N)' base
@@ -190,16 +189,14 @@ defmodule HAP.Pairing.Crypto do
   @doc """
     Compute the client session proof.
 
-    M_c = H(H(N) ^ H(g), H(I), s, A, B, K_c)
+    M_c = H(H(N) xor H(g), H(I), s, A, B, K_c)
   """
   @spec client_session_proof(String.t, binary, binary, binary, binary) :: binary
   def client_session_proof(username, salt, client_public_key, server_public_key, session_hash) do
-    mod_hash = :crypto.hash(:sha512, @modulus)
-    gen_hash = :crypto.hash(:sha512, @generator)
+    mod_hash = :crypto.hash(:sha512, @modulus) |> :binary.decode_unsigned()
+    gen_hash = :crypto.hash(:sha512, @generator) |> :binary.decode_unsigned()
     
-    # The wiki page says H(N) ^ H(g), but it also says all exponents are computed against the
-    # prime modulus. ¯\_(ツ)_/¯ 
-    first = :crypto.mod_pow(mod_hash, gen_hash, @modulus)
+    first = mod_hash ^^^ gen_hash |> :binary.encode_unsigned()
     username_hash = :crypto.hash(:sha512, username)
 
     :crypto.hash(:sha512, [first, username_hash, salt, client_public_key, server_public_key, session_hash])
