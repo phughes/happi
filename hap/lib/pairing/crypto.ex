@@ -193,10 +193,10 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec client_session_proof(String.t, binary, binary, binary, binary) :: binary
   def client_session_proof(username, salt, client_public_key, server_public_key, session_hash) do
-    mod_hash = :crypto.hash(:sha512, @modulus) |> :binary.decode_unsigned()
-    gen_hash = :crypto.hash(:sha512, @generator) |> :binary.decode_unsigned()
+    mod_hash = :crypto.hash(:sha512, @modulus)
+    gen_hash = :crypto.hash(:sha512, @generator)
     
-    first = mod_hash ^^^ gen_hash |> :binary.encode_unsigned()
+    first = :crypto.exor(mod_hash, gen_hash)
     username_hash = :crypto.hash(:sha512, username)
 
     :crypto.hash(:sha512, [first, username_hash, salt, client_public_key, server_public_key, session_hash])
