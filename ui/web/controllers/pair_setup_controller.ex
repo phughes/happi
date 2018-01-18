@@ -33,7 +33,7 @@ defmodule Ui.PairSetupController do
 
   
   def pair_setup(%Conn{assigns: %{tlvs: [@setup_method, @m1]}} = conn, _params) do
-    Logger.info "m1 received"
+    Logger.info "m1 received #{inspect(conn.remote_ip)}"
     
     {public_key, salt} = Pairing.pairing_m1(conn.remote_ip)
     response_data = [@m2, 
@@ -44,34 +44,52 @@ defmodule Ui.PairSetupController do
 
     Logger.info "sending m2 key_length: #{inspect(byte_size(public_key))} salt length: #{inspect(byte_size(salt))}"
     conn
-    |> put_resp_content_type("application/pairing+tlv8")
+    |> put_resp_header("connection", "keep-alive")
+    |> put_resp_header("content-type", "application/pairing+tlv8")
     |> send_resp(200, data)
   end
 
   def pair_setup(%Conn{assigns: %{tlvs: [@m3, client_public_key, client_srp_proof]}} = conn, _params) do
     Logger.info "m3 received"
-    _verified = HAP.Pairing.verify_srp_proof(conn.remote_ip, client_public_key, client_srp_proof)
-    accessory_srp_proof = HAP.Pairing.pairing_m3(conn.remote_ip, client_public_key, client_srp_proof)
+    response_data = case HAP.Pairing.pairing_m3(conn.remote_ip, client_public_key.value, client_srp_proof.value) do
+      {:ok, accessory_srp_proof} ->
+        [@m4, %TLV{type: TLV.TLVType.proof, value: accessory_srp_proof}]
+      {:error, :authentication} ->
+        Logger.info "m3 auth error."
+        [@m4, %TLV{type: TLV.TLVType.error, value: TLV.TLVError.authentication}]
+    end
 
-    response_data = [@m4, %TLV{type: TLV.TLVType.proof, value: accessory_srp_proof}]
     data = HAP.TLV.encode(response_data)
 
-    Logger.info "sending m4"
+    Logger.info "sending m4: #{inspect(data)}"
     conn
-    |> put_resp_content_type("application/pairing+tlv8")
+    |> put_resp_header("connection", "keep-alive")
+    |> put_resp_header("content-type", "application/pairing+tlv8")
     |> send_resp(200, data)
   end
 
-  def pair_setup(%Conn{assigns: %{tlvs: [@setup_method, @m5]}} = conn, params) do
+  def pair_setup(%Conn{assigns: %{tlvs: [%TLV{type: :encrypted_data, value: encrypted_data}, @m5]}} = conn, _params) do
     Logger.info "m5 received"
-    
-    Logger.info "sending m6"
+    response_data = case HAP.Pairing.pairing_m5(conn.remote_ip, encrypted_data) do
+      {:ok, encrypted_response} ->
+        Logger.info "m6 response generation succeeded. #{inspect(encrypted_response)}"
+        [@m6, %TLV{type: TLV.TLVType.encrypted_data, value: encrypted_response}]
+      _ ->
+        Logger.info "m6 response generation failed."
+        [@m6, %TLV{type: TLV.TLVType.error, value: TLV.TLVError.authentication}]
+    end    
+
+    data = HAP.TLV.encode(response_data)
+    Logger.info "sending m6: #{inspect(data)}"
+    conn
+    |> put_resp_header("connection", "keep-alive")
+    |> put_resp_header("content-type", "application/pairing+tlv8")
+    |> send_resp(200, data)
   end
 
   def pair_setup(conn, params) do
-  Logger.info "last!"
-    # Logger.info "params: #{inspect(params)} \n\n\nconn: #{inspect(conn.assigns)}"
-    Logger.info "to compare: #{inspect([@setup_method, @m1])}"
+    Logger.info "last!"
+    Logger.info "params: #{inspect(params)} \n\n\nconn: #{inspect(conn.assigns)}"
     render conn, "index.html"
   end
 

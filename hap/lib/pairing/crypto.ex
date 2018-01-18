@@ -113,7 +113,7 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec host_public_key(binary, binary) :: binary
   def host_public_key(verifier, private_key) do
-    # This doesn't work. There's a hash generated in there somewhere (the multiplier), which needs to use SHA512.
+    # :crypto's :srp key generator doesn't work for us. There's a hash generated in there somewhere (the multiplier), which needs to use SHA512.
     # {public, _} = :crypto.generate_key(:srp, {:host, [verifier, @generator, @modulus, @version]}, private_key)
     # public
 
@@ -183,6 +183,10 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec session_key(binary) :: binary
   def session_key(premaster_secret) do
+    # salt = "Pair-Setup-Encrypt-Salt"
+    # info = "Pair-Setup-Encrypt-Info"
+    # HKDF.derive(:sha512, premaster_secret, 32, salt, info)
+
     :crypto.hash(:sha512, premaster_secret)
   end
 

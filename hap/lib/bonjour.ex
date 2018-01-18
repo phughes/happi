@@ -22,7 +22,7 @@ defmodule HAP.Bonjour do
   end
 
   def handle_info(stuff, state) do
-    Logger.warn "Found weird stuff: #{inspect(stuff)} and shit #{inspect(state)}"
+    Logger.warn "handle info: #{inspect(stuff)} and shit #{inspect(state)}"
     {:noreply, state}
   end
 
@@ -32,8 +32,6 @@ defmodule HAP.Bonjour do
   end
 
   defp advertise(state) do
-    state = clear_advertisements(state)
-
     name = accessory_name()
     {:ok, hap_pid} = :dnssd.register(name, "_hap._tcp", 80, txt())
     {:ok, http_pid} = :dnssd.register(name, "_http._tcp", 80)
@@ -42,7 +40,7 @@ defmodule HAP.Bonjour do
   end
 
   defp txt do
-    pairing_id = "11:22:33:44:55:66"
+    pairing_id = HAP.Pairing.Impl.pairing_id()
     model_name = "happi"
     status_flag = status_flag()
     config_number = current_config()

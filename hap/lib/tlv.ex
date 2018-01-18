@@ -177,4 +177,13 @@ defmodule HAP.TLV do
     <<value::binary-size(length), next_binary::binary>> = binary
     {value, next_binary}
   end
+
+  def to_map(tlvs) when is_list(tlvs) do
+    to_map(tlvs, %{})
+  end
+
+  defp to_map([tlv | tail], map) do
+    to_map(tail, Map.put(map, tlv.type, tlv.value))
+  end
+  defp to_map([], map), do: map
 end

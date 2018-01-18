@@ -9,10 +9,12 @@ defmodule HAP.Application do
 
   def start(_type, _args) do
     Logger.warn "### Starting HAP.Application ###"
+    HAP.Pairing.Impl.setup()
+
     # List all child processes to be supervised
     children = [
       {HAP.Bonjour, name: HAP.Bonjour},
-      {HAP.Pairing, name: HAP.Pairing}
+      {HAP.Pairing, name: HAP.Pairing},
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
