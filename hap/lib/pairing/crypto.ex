@@ -19,9 +19,9 @@ defmodule HAP.Pairing.Crypto do
   Pairing.Crypto is an implementation of the Session Remote Protocol 
   cryptographic functions modified to match the ones used in 
   Apple's HomeKit Accessory Protocol Specification.
-  
+
   The following formulas are taken rfc 5054 located at http://srp.stanford.edu/doc.html.
-  
+
     The premaster secret is calculated by the client as follows:
     I, P = <read from user>
     N, g, s, B = <read from server>
@@ -89,10 +89,10 @@ defmodule HAP.Pairing.Crypto do
   @doc """
     Calculate the derrived key from a given username, password & salt.
   """
-  @spec derrived_key(String.t, String.t, binary) :: binary    
+  @spec derrived_key(String.t(), String.t(), binary) :: binary
   def derrived_key(username, password, salt) do
     # derrived_key = SHA512(salt | SHA512(username | ":" | password))  
-    :crypto.hash(:sha512, [salt, :crypto.hash(:sha512,  [username, ":", password])])
+    :crypto.hash(:sha512, [salt, :crypto.hash(:sha512, [username, ":", password])])
   end
 
   @spec verifier(binary) :: binary
@@ -100,11 +100,11 @@ defmodule HAP.Pairing.Crypto do
     :crypto.mod_pow(@generator, derrived_key, @modulus)
   end
 
-  @spec random_scrambling_parameter(binary, binary) :: binary  
+  @spec random_scrambling_parameter(binary, binary) :: binary
   def random_scrambling_parameter(client_key, host_key) do
     :crypto.hash(:sha512, [client_key, host_key])
   end
-  
+
   @doc """
     host_public_key = multiplier*verifier + generator^host_private_key % prime
     # B = (k * v + pow(g, b, N)) % N
@@ -122,7 +122,7 @@ defmodule HAP.Pairing.Crypto do
     int_veryifier = verifier |> :binary.decode_unsigned()
     prime = @modulus |> :binary.decode_unsigned()
 
-    rem(((int_multiplier * int_veryifier) + power), prime) |> :binary.encode_unsigned()
+    rem(int_multiplier * int_veryifier + power, prime) |> :binary.encode_unsigned()
   end
 
   @doc """
@@ -130,7 +130,9 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec client_public_key(binary) :: binary
   def client_public_key(client_private_key) do
-    {public, _} = :crypto.generate_key(:srp, {:user, [@generator, @modulus, @version]}, client_private_key)    
+    {public, _} =
+      :crypto.generate_key(:srp, {:user, [@generator, @modulus, @version]}, client_private_key)
+
     public
   end
 
@@ -139,23 +141,32 @@ defmodule HAP.Pairing.Crypto do
     S_c = pow(B - k * pow(g, x, N), a + u * x, N)
   """
   @spec client_premaster_secret(binary, binary, binary, binary) :: binary
-  def client_premaster_secret(derrived_key, host_public_key, client_private_key, client_public_key) do
+  def client_premaster_secret(
+        derrived_key,
+        host_public_key,
+        client_private_key,
+        client_public_key
+      ) do
     # 'B'
     int_host_public_key = host_public_key |> :binary.decode_unsigned()
     # 'k'
     int_multiplier = multiplier() |> :binary.decode_unsigned()
-    power = :crypto.mod_pow(@generator, derrived_key, @modulus) |> :binary.decode_unsigned() 
+    power = :crypto.mod_pow(@generator, derrived_key, @modulus) |> :binary.decode_unsigned()
 
-    base = abs(int_host_public_key - (int_multiplier * power)) |> :binary.encode_unsigned()
+    base = abs(int_host_public_key - int_multiplier * power) |> :binary.encode_unsigned()
 
     # 'a'
     int_client_private_key = client_private_key |> :binary.decode_unsigned()
     # 'u'
-    int_random_scrambling_parameter = random_scrambling_parameter(client_public_key, host_public_key) |> :binary.decode_unsigned()
+    int_random_scrambling_parameter =
+      random_scrambling_parameter(client_public_key, host_public_key) |> :binary.decode_unsigned()
+
     # 'x'
     int_derrived_key = derrived_key |> :binary.decode_unsigned()
     # 'a + u * x'
-    exponent = (int_client_private_key + (int_random_scrambling_parameter * int_derrived_key)) |> :binary.encode_unsigned()
+    exponent =
+      (int_client_private_key + int_random_scrambling_parameter * int_derrived_key)
+      |> :binary.encode_unsigned()
 
     :crypto.mod_pow(base, exponent, @modulus)
   end
@@ -168,13 +179,21 @@ defmodule HAP.Pairing.Crypto do
   @spec host_premaster_secret(binary, binary, binary, binary) :: binary
   def host_premaster_secret(verifier, host_public_key, host_private_key, client_public_key) do
     # 'pow(v, u, N)' power
-    power = :crypto.mod_pow(verifier, random_scrambling_parameter(client_public_key, host_public_key), @modulus) |> :binary.decode_unsigned()
+    power =
+      :crypto.mod_pow(
+        verifier,
+        random_scrambling_parameter(client_public_key, host_public_key),
+        @modulus
+      )
+      |> :binary.decode_unsigned()
+
     # 'A' client public_key
     int_client_public_key = client_public_key |> :binary.decode_unsigned()
     # 'A * pow(v, u, N)' base
     base = (int_client_public_key * power) |> :binary.encode_unsigned()
 
     :crypto.mod_pow(base, host_private_key, @modulus)
+
     # :crypto.compute_key(:srp, client_public_key, {host_public_key, host_private_key}, {:host, [verifier, @modulus, @version]})    
   end
 
@@ -183,10 +202,6 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec session_key(binary) :: binary
   def session_key(premaster_secret) do
-    # salt = "Pair-Setup-Encrypt-Salt"
-    # info = "Pair-Setup-Encrypt-Info"
-    # HKDF.derive(:sha512, premaster_secret, 32, salt, info)
-
     :crypto.hash(:sha512, premaster_secret)
   end
 
@@ -195,15 +210,23 @@ defmodule HAP.Pairing.Crypto do
 
     M_c = H(H(N) xor H(g), H(I), s, A, B, K_c)
   """
-  @spec client_session_proof(String.t, binary, binary, binary, binary) :: binary
-  def client_session_proof(username, salt, client_public_key, server_public_key, session_hash) do
+  @spec client_session_proof(String.t(), binary, binary, binary, binary) :: binary
+  def client_session_proof(username, salt, client_public_key, server_public_key, session_key) do
     mod_hash = :crypto.hash(:sha512, @modulus)
     gen_hash = :crypto.hash(:sha512, @generator)
-    
+    session_hash = :crypto.hash(:sha512, session_key)
+
     first = :crypto.exor(mod_hash, gen_hash)
     username_hash = :crypto.hash(:sha512, username)
 
-    :crypto.hash(:sha512, [first, username_hash, salt, client_public_key, server_public_key, session_hash])
+    :crypto.hash(:sha512, [
+      first,
+      username_hash,
+      salt,
+      client_public_key,
+      server_public_key,
+      session_hash
+    ])
   end
 
   @doc """
@@ -212,7 +235,8 @@ defmodule HAP.Pairing.Crypto do
     M_s = H(A, M_c, K_s)
   """
   @spec host_session_proof(binary, binary, binary) :: binary
-  def host_session_proof(client_public_key, client_session_proof, session_hash) do
+  def host_session_proof(client_public_key, client_session_proof, session_key) do
+    session_hash = :crypto.hash(:sha512, session_key)
     :crypto.hash(:sha512, [client_public_key, client_session_proof, session_hash])
   end
 
@@ -230,10 +254,12 @@ defmodule HAP.Pairing.Crypto do
 
   defp pad(binary) do
     case pad_length(byte_size(@modulus), byte_size(binary)) do
-      0 -> binary
-      n -> 
+      0 ->
+        binary
+
+      n ->
         length = n * 8
         <<0::size(length), binary::binary>>
     end
-  end  
+  end
 end

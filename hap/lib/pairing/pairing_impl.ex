@@ -28,10 +28,10 @@ defmodule HAP.Pairing.Impl do
   @keypair_filename "keypair.bin"
 
   @debug_path "#{Application.get_env(:hap, HAP.Pairing.Impl)[:user_partition]}/debug/"
-  
+
   @doc """
     setup()
-    Initializes the happi directory if it hasn't been created yet. 
+    Initializes the happi directory if it hasn't been created yet.
   """
   def setup() do
     if File.dir?(@path) == false do
@@ -56,7 +56,7 @@ defmodule HAP.Pairing.Impl do
     reset()
 
     Empties the happi directory and creates a new setup code.
-    
+
     This should have the effect of unpairing the device from all
     associations.
 
@@ -85,7 +85,7 @@ defmodule HAP.Pairing.Impl do
     second = :rand.uniform(100) - 1
     |> Integer.to_string
     |> String.pad_leading(2, ["0"])
-    
+
     third = :rand.uniform(1000) - 1
     |> Integer.to_string
     |> String.pad_leading(3, ["0"])
@@ -113,7 +113,7 @@ defmodule HAP.Pairing.Impl do
   end
 
   defp generate_pairing_id() do
-    pair = fn() -> 
+    pair = fn() ->
       :rand.uniform(256) - 1
       |> Integer.to_string(16)
       |> String.pad_leading(2, ["0"])
@@ -131,7 +131,7 @@ defmodule HAP.Pairing.Impl do
     <<public::binary-size(32), secret::binary-size(32)>> = File.read!(@path <> @keypair_filename)
     {public, secret}
   end
-  
+
   def save_device_key(device_id, key) do
     File.write!(@path <> @pairings_directory_name <> device_id <> ".bin", key)
   end
@@ -154,7 +154,11 @@ defmodule HAP.Pairing.Impl do
     data_size = byte_size(encrypted_data) - auth_tag_size
     <<data::binary-size(data_size), auth_tag::binary-size(auth_tag_size)>> = encrypted_data
 
-    Chacha20poly1305.decrypt_detached(nsec, data, auth_tag, aad, nonce, session_key)
+    salt = "Pair-Setup-Encrypt-Salt"
+    info = "Pair-Setup-Encrypt-Info"
+    new_key = HKDF.derive(:sha512, session_key, 32, salt, info)
+
+    Chacha20poly1305.decrypt_detached(nsec, data, auth_tag, aad, nonce, new_key)
   end
 
   def m5_decode({:ok, bin_tlvs}) do
@@ -200,7 +204,7 @@ defmodule HAP.Pairing.Impl do
     salt = "Pair-Setup-Accessory-Sign-Salt"
     info = "Pair-Setup-Accessory-Sign-Info"
     accessory_x = HKDF.derive(:sha512, session_key, 32, salt, info)
-    
+
     accessory_info = accessory_x <> pairing_id <> ltpk
     signature = Ed25519.sign_detached(accessory_info, ltsk)
 
@@ -208,7 +212,7 @@ defmodule HAP.Pairing.Impl do
             %TLV{type: TLV.TLVType.public_key, value: ltpk},
             %TLV{type: TLV.TLVType.signature, value: signature}]
     tlv_data = TLV.encode(tlvs)
-    
+
     aad = <<>>
     nonce = "PS-Msg06"
     Chacha20poly1305.encrypt(tlv_data, aad, nil, nonce, session_key)

@@ -99,15 +99,13 @@ defmodule PairingTest do
   end
 
   test "host session proof" do
-    session_hash = :crypto.hash(:sha512, session_key())
-    h_session_proof = Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_hash)
+    h_session_proof = Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_key())
 
     assert h_session_proof == host_session_proof()
   end
 
   test "client session proof" do
-    session_hash = :crypto.hash(:sha512, session_key())
-    c_session_proof = Pairing.Crypto.client_session_proof(username(), salt(), a_public(), b_public(), session_hash)
+    c_session_proof = Pairing.Crypto.client_session_proof(username(), salt(), a_public(), b_public(), session_key())
 
     assert c_session_proof == client_session_proof()
   end

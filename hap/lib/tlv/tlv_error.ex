@@ -21,14 +21,22 @@ defmodule HAP.TLV.TLVError do
   """
 
   # TLVErrors are single bytes on the wire, we convert them to atoms for easier debugging.
-  @type tlv_error :: atom
+  @type tlv_error ::
+          :reserved
+          | :unknown
+          | :authentication
+          | :backoff
+          | :max_peers
+          | :max_tries
+          | :unavailable
+          | :error
 
   @doc """
     integer_from_error(error)
 
     Returns the integer value associated with the TLVError atom.
   """
-  @spec integer_from_error(tlv_error) :: integer  
+  @spec integer_from_error(tlv_error) :: integer
   def integer_from_error(error) do
     case error do
       :reserved -> 0x00
@@ -47,7 +55,7 @@ defmodule HAP.TLV.TLVError do
 
   Returns the TLVError atom associated with the given integer.
   """
-  @spec error_from_integer(integer) :: tlv_error  
+  @spec error_from_integer(integer) :: tlv_error
   def error_from_integer(integer) do
     case integer do
       0x00 -> :reserved
@@ -66,7 +74,7 @@ defmodule HAP.TLV.TLVError do
     - description: Reserved.
   """
   @spec reserved :: tlv_error
-  def reserved, do: :reserved	
+  def reserved, do: :reserved
 
   @doc """
     - description: Generic error to handle unexpected errors.

@@ -45,26 +45,49 @@ defmodule HAP.Pairing do
     username = "Pair-Setup"
     {:ok, password} = Impl.setup_code()
     Logger.info("Setup code: #{inspect(password)}")
-    
+
     salt = Crypto.salt()
     derrived_key = Crypto.derrived_key(username, password, salt)
     verifier = Crypto.verifier(derrived_key)
     private_key = Crypto.private_key()
     public_key = Crypto.host_public_key(verifier, private_key)
 
-    pairing_info = %{username: username, password: password, salt: salt, verifier: verifier, private_key: private_key, host_public_key: public_key}
+    pairing_info = %{
+      username: username,
+      password: password,
+      salt: salt,
+      verifier: verifier,
+      private_key: private_key,
+      host_public_key: public_key
+    }
+
     {:reply, {public_key, salt}, Map.put(state, ip_address, pairing_info)}
   end
 
-  def handle_call({:pairing_m3, {ip_address, client_public_key, client_session_proof}}, _from, state) do
+  def handle_call(
+        {:pairing_m3, {ip_address, client_public_key, client_session_proof}},
+        _from,
+        state
+      ) do
     pairing_info = state[ip_address]
-    %{username: username, salt: salt, verifier: verifier, private_key: private_key, host_public_key: host_public_key} = pairing_info
 
-    premaster_secret = Crypto.host_premaster_secret(verifier, host_public_key, private_key, client_public_key)
-    session_key = Crypto.session_key(premaster_secret)
-    proof = Crypto.client_session_proof(username, salt, client_public_key, host_public_key, session_key)
-    if (client_session_proof == proof) do
-      session_proof = Crypto.host_session_proof(client_public_key, client_session_proof, session_key)
+    %{
+      username: username,
+      salt: salt,
+      verifier: verifier,
+      private_key: private_key,
+      host_public_key: host_public_key
+    } = pairing_info
+
+    session_key =
+      Crypto.host_premaster_secret(verifier, host_public_key, private_key, client_public_key)
+    proof =
+      Crypto.client_session_proof(username, salt, client_public_key, host_public_key, session_key)
+
+    if client_session_proof == proof do
+      session_proof =
+        Crypto.host_session_proof(client_public_key, client_session_proof, session_key)
+
       pairing_info = %{session_key: session_key}
       state = Map.put(state, ip_address, pairing_info)
 
@@ -74,23 +97,19 @@ defmodule HAP.Pairing do
     end
   end
 
-  def handle_call({:pairing_m5, {ip_address, encrypted_data}}, _from, state) do\
-    %{session_key: session_key} = state[ip_address]
-    # salt = "Pair-Setup-Encrypt-Salt"
-    # info = "Pair-Setup-Encrypt-Info"
-    # key = HKDF.derive(:sha512, session_key, 32, salt, info)
-
+  def handle_call({:pairing_m5, {ip_address, encrypted_data}}, _from, state) do
+    %{session_key: session_key} = state[ip_address]    
     pairing_id = Impl.pairing_id()
     {ltpk, ltsk} = Impl.keypair()
 
-    encrypted_response = Impl.m5_decrypt(encrypted_data, session_key)
-    |> Impl.m5_decode()
-    |> Impl.m5_verify(session_key)
-    |> Impl.m5_store_pairing()
-    |> Impl.m6_encrypted_response(session_key, pairing_id, ltpk, ltsk)
+    encrypted_response =
+      Impl.m5_decrypt(encrypted_data, session_key)
+      |> Impl.m5_decode()
+      |> Impl.m5_verify(session_key)
+      |> Impl.m5_store_pairing()
+      |> Impl.m6_encrypted_response(session_key, pairing_id, ltpk, ltsk)
 
     new_state = Map.delete(state, ip_address)
     {:reply, encrypted_response, new_state}
   end
-
 end
