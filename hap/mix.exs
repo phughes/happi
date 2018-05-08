@@ -6,7 +6,7 @@ defmodule HAP.Mixfile do
       app: :hap,
       version: "0.1.0",
       elixir: "~> 1.5",
-      start_permanent: Mix.env == :prod,
+      start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
@@ -22,11 +22,12 @@ defmodule HAP.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:hkdf, "~> 0.1.0"}, # Key derivation function used in pairing step M5.
+      # Key derivation function used in pairing step M5.
+      {:hkdf, "~> 0.1.0"},
       {:salty, git: "https://github.com/ArteMisc/libsalty"},
       # {:sqlite_ecto2, "~> 2.0.0-dev.8"},
       {:system_registry, "~> 0.6"},
-      {:nerves_dnssd, "~> 0.3.0"},
+      {:nerves_dnssd, "~> 0.3.0"}
     ]
   end
 end
