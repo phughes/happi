@@ -16,8 +16,8 @@
 
 defmodule HAP.Pairing.Crypto do
   @moduledoc """
-  Pairing.Crypto is an implementation of the Session Remote Protocol 
-  cryptographic functions modified to match the ones used in 
+  Pairing.Crypto is an implementation of the Session Remote Protocol
+  cryptographic functions modified to match the ones used in
   Apple's HomeKit Accessory Protocol Specification.
 
   The following formulas are taken rfc 5054 located at http://srp.stanford.edu/doc.html.
@@ -91,7 +91,7 @@ defmodule HAP.Pairing.Crypto do
   """
   @spec derrived_key(String.t(), String.t(), binary) :: binary
   def derrived_key(username, password, salt) do
-    # derrived_key = SHA512(salt | SHA512(username | ":" | password))  
+    # derrived_key = SHA512(salt | SHA512(username | ":" | password))
     :crypto.hash(:sha512, [salt, :crypto.hash(:sha512, [username, ":", password])])
   end
 
@@ -194,7 +194,7 @@ defmodule HAP.Pairing.Crypto do
 
     :crypto.mod_pow(base, host_private_key, @modulus)
 
-    # :crypto.compute_key(:srp, client_public_key, {host_public_key, host_private_key}, {:host, [verifier, @modulus, @version]})    
+    # :crypto.compute_key(:srp, client_public_key, {host_public_key, host_private_key}, {:host, [verifier, @modulus, @version]})
   end
 
   @doc """
@@ -219,14 +219,17 @@ defmodule HAP.Pairing.Crypto do
     first = :crypto.exor(mod_hash, gen_hash)
     username_hash = :crypto.hash(:sha512, username)
 
-    :crypto.hash(:sha512, [
-      first,
-      username_hash,
-      salt,
-      client_public_key,
-      server_public_key,
-      session_hash
-    ])
+    proof =
+      :crypto.hash(:sha512, [
+        first,
+        username_hash,
+        salt,
+        client_public_key,
+        server_public_key,
+        session_hash
+      ])
+
+    proof
   end
 
   @doc """

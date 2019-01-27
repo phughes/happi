@@ -58,7 +58,7 @@ defmodule Firmware.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   def deps do
-    [{:nerves, "~> 1.0", runtime: false}] ++ deps(@target)
+    [{:nerves, "~> 1.3.0", runtime: false}] ++ deps(@target)
   end
 
   # Specify target specific dependencies
@@ -67,7 +67,7 @@ defmodule Firmware.Mixfile do
   def deps(target) do
     [
       system(target),
-      {:shoehorn, "~> 0.2"},
+      {:shoehorn, "~> 0.4"},
       {:nerves_runtime, "~> 0.6"},
       {:nerves_network, "~> 0.3"},
       {:ui, path: "../ui"},

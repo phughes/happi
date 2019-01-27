@@ -18,28 +18,27 @@ defmodule PairingTest do
   use ExUnit.Case
 
   alias HAP.Pairing
-  # doctest SRP
   doctest Pairing.Impl
 
-  def a_private, do: File.read! "test/pairing/values/a_private.bin"
-  def a_public, do: File.read! "test/pairing/values/a_public.bin"
-  def b_private, do: File.read! "test/pairing/values/b_private.bin"
-  def b_public, do: File.read! "test/pairing/values/b_public.bin"
-  def premaster_secret, do: File.read! "test/pairing/values/premaster_secret.bin"
-  def random, do: File.read! "test/pairing/values/random_scrambling_parameter.bin"
-  def salt, do: File.read! "test/pairing/values/salt.bin"
-  def session_key, do: File.read! "test/pairing/values/session_key.bin"
-  def verifier, do: File.read! "test/pairing/values/verifier.bin"
-  def client_session_proof, do: File.read! "test/pairing/values/client_session_proof.bin"
-  def host_session_proof, do: File.read! "test/pairing/values/host_session_proof.bin"
-  
+  def a_private, do: File.read!("test/pairing/values/a_private.bin")
+  def a_public, do: File.read!("test/pairing/values/a_public.bin")
+  def b_private, do: File.read!("test/pairing/values/b_private.bin")
+  def b_public, do: File.read!("test/pairing/values/b_public.bin")
+  def premaster_secret, do: File.read!("test/pairing/values/premaster_secret.bin")
+  def random, do: File.read!("test/pairing/values/random_scrambling_parameter.bin")
+  def salt, do: File.read!("test/pairing/values/salt.bin")
+  def session_key, do: File.read!("test/pairing/values/session_key.bin")
+  def verifier, do: File.read!("test/pairing/values/verifier.bin")
+  def client_session_proof, do: File.read!("test/pairing/values/client_session_proof.bin")
+  def host_session_proof, do: File.read!("test/pairing/values/host_session_proof.bin")
+
   def username, do: "alice"
   def password, do: "password123"
 
-  
-  test "verifier" do 
-    c_verifier = Pairing.Crypto.derrived_key(username(), password(), salt())
-    |> Pairing.Crypto.verifier()
+  test "verifier" do
+    c_verifier =
+      Pairing.Crypto.derrived_key(username(), password(), salt())
+      |> Pairing.Crypto.verifier()
 
     assert c_verifier == verifier()
   end
@@ -64,7 +63,9 @@ defmodule PairingTest do
 
   test "client premaster_secret" do
     derrived_key = Pairing.Crypto.derrived_key(username(), password(), salt())
-    secret = Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
+
+    secret =
+      Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
 
     assert secret == premaster_secret()
   end
@@ -77,36 +78,56 @@ defmodule PairingTest do
 
   test "compare premaster secret" do
     derrived_key = Pairing.Crypto.derrived_key(username(), password(), salt())
-    client_secret = Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
-    host_secret = Pairing.Crypto.host_premaster_secret(verifier(), b_public(), b_private(), a_public())
+
+    client_secret =
+      Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
+
+    host_secret =
+      Pairing.Crypto.host_premaster_secret(verifier(), b_public(), b_private(), a_public())
 
     assert client_secret == host_secret
   end
 
   test "session key from client secret" do
-    derrived_key = Pairing.Crypto.derrived_key(username(), password(), salt())    
-    client_secret = Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
+    derrived_key = Pairing.Crypto.derrived_key(username(), password(), salt())
+
+    client_secret =
+      Pairing.Crypto.client_premaster_secret(derrived_key, b_public(), a_private(), a_public())
+
     key = Pairing.Crypto.session_key(client_secret)
 
     assert key == session_key()
   end
 
   test "session key from host secret" do
-    host_secret = Pairing.Crypto.host_premaster_secret(verifier(), b_public(), b_private(), a_public())
+    host_secret =
+      Pairing.Crypto.host_premaster_secret(verifier(), b_public(), b_private(), a_public())
+
     key = Pairing.Crypto.session_key(host_secret)
 
     assert key == session_key()
   end
 
   test "host session proof" do
-    h_session_proof = Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_key())
+    h_session_proof =
+      Pairing.Crypto.host_session_proof(a_public(), client_session_proof(), session_key())
 
+    # File.write!("test/pairing/values/host_session_proof.bin", h_session_proof)
     assert h_session_proof == host_session_proof()
   end
 
   test "client session proof" do
-    c_session_proof = Pairing.Crypto.client_session_proof(username(), salt(), a_public(), b_public(), session_key())
+    c_session_proof =
+      Pairing.Crypto.client_session_proof(
+        username(),
+        salt(),
+        a_public(),
+        b_public(),
+        session_key()
+      )
 
+    # Sometimes you just make up the right answer.
+    # File.write!("test/pairing/values/client_session_proof.bin", c_session_proof)
     assert c_session_proof == client_session_proof()
   end
 end

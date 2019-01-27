@@ -24,9 +24,9 @@ defmodule HAP.Mixfile do
     [
       # Key derivation function used in pairing step M5.
       {:hkdf, "~> 0.1.0"},
-      {:salty, git: "https://github.com/ArteMisc/libsalty"},
-      {:system_registry, "~> 0.6"},
-      {:nerves_dnssd, "~> 0.3.1"}
+      {:salty, "~> 0.1.3", hex: :libsalty},
+      {:system_registry, "~> 0.8"},
+      {:nerves_dnssd, git: "https://github.com/amolenaar/nerves_dnssd"}
     ]
   end
 end
