@@ -1,32 +1,52 @@
-defmodule HAP.Mixfile do
+defmodule Hap.MixProject do
   use Mix.Project
 
   def project do
     [
       app: :hap,
       version: "0.1.0",
+      build_path: "_build",
+      config_path: "config/config.exs",
+      deps_path: "deps",
+      lockfile: "mix.lock",
       elixir: "~> 1.5",
+      elixirc_paths: elixirc_paths(Mix.env()),
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
+  # Configuration for the OTP application.
+  #
+  # Type `mix help compile.app` for more information.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {HAP.Application, []}
+      mod: {HAP.Application, []},
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+  # Specifies your project dependencies.
+  #
+  # Type `mix help deps` for examples and options.
   defp deps do
     [
-      # Key derivation function used in pairing step M5.
+      {:phoenix, "~> 1.4.1"},
+      {:phoenix_pubsub, "~> 1.1"},
+      {:phoenix_html, "~> 2.11"},
+      # {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:gettext, "~> 0.11"},
+      {:jason, "~> 1.0"},
+      {:plug_cowboy, "~> 2.0"},
+      # Crypto stuff.
       {:hkdf, "~> 0.1.0"},
       {:salty, "~> 0.1.3", hex: :libsalty},
-      {:system_registry, "~> 0.8"},
-      {:nerves_dnssd, git: "https://github.com/amolenaar/nerves_dnssd"}
+      {:system_registry, "~> 0.8"}
     ]
   end
 end

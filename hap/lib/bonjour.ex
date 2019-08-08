@@ -1,59 +1,62 @@
 defmodule HAP.Bonjour do
   # @moduledoc false
-
-  use GenServer
   require Logger
 
-  def start_link(_args) do
-    Logger.warn "#### STARTING BONJOUR ####"
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  defstruct [:name, :service, :txt, port: 80]
+
+  defmodule Advertiser do
+    @moduledoc """
+    A behavior to be implemented by the host application to allow
+    advertising via mdns without forcing a particualr mdns client.
+    """
+    @callback update_advertisement_info([%{}]) :: :ok | {:error, String.t()}
+
+    def update_advertisement_info(_info) do
+      {:error, "Unimplemented function."}
+    end
   end
 
-  def init(_state) do
-    {:ok, _} = Registry.register(Nerves.Udhcpc, "wlan0", [])
-    {:ok, %{:pids => []}}
+  @default_advertiser Advertiser
+  def advertise() do
+    config = Application.get_env(:hap, __MODULE__, [])
+    bonjour = config[:advertiser] || @default_advertiser
+
+    bonjour.update_advertisement_info(advertisement_info())
   end
 
-  def handle_info({Nerves.Udhcpc, :bound, %{ifname: "wlan0"} = data}, state) do
-    Logger.debug "DNS BOUND! #{inspect(data)}"
-
-    state = advertise(state)
-    {:noreply, state}
+  def advertisement_info() do
+    [
+      %HAP.Bonjour{name: accessory_name(), service: "_hap._tcp", port: 80, txt: txt()},
+      %HAP.Bonjour{name: accessory_name(), service: "_http._tcp", port: 80, txt: [""]}
+    ]
   end
 
-  def handle_info(stuff, state) do
-    Logger.warn "handle info: #{inspect(stuff)} and shit #{inspect(state)}"
-    {:noreply, state}
-  end
-
-  defp clear_advertisements(state) do
-    Enum.each(state.pids, &(:dnssd.stop(&1)))
-    %{state | :pids => []}
-  end
-
-  defp advertise(state) do
-    name = accessory_name()
-    {:ok, hap_pid} = :dnssd.register(name, "_hap._tcp", 80, txt())
-    {:ok, http_pid} = :dnssd.register(name, "_http._tcp", 80)
-
-    %{state | :pids => [hap_pid, http_pid]}
-  end
-
-  defp txt do
+  def txt do
     pairing_id = HAP.Pairing.Impl.pairing_id()
-    model_name = "happi"
+    model_name = accessory_name()
     status_flag = status_flag()
     config_number = current_config()
-    feature_flag = 0 # Only MFi certified accessories should set this to 1. 
-    ["c#=#{config_number}", "ff=#{feature_flag}", "id=#{pairing_id}", "md=#{model_name}", "pv=1.0", "s#=1", "sf=#{status_flag}", "ci=2"]
+    # Only MFi certified accessories should set this to 1.
+    feature_flag = 0
+
+    [
+      "c#=#{config_number}",
+      "ff=#{feature_flag}",
+      "id=#{pairing_id}",
+      "md=#{model_name}",
+      "pv=1.0",
+      "s#=1",
+      "sf=#{status_flag}",
+      "ci=2"
+    ]
   end
 
   @doc """
     The user assigned accessory name.
   """
   def accessory_name() do
-    # We should probably store this in the System Registry.
-    "Patrick's Accessory"
+    config = Application.get_env(:hap, __MODULE__, [])
+    config[:hostname] || "Happi"
   end
 
   @doc """

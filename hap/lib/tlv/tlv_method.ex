@@ -19,14 +19,20 @@ defmodule HAP.TLV.TLVMethod do
   TLV Methods are defined in table 4.4 of the HAP-Specification-Non-Commercial-Version.pdf
   They are used as the value of TLVs of type TLVType.method.
   """
-  @type tlv_method :: atom
+  @type method ::
+          :reserved
+          | :pair_setup
+          | :pair_verify
+          | :add_pairing
+          | :remove_pairing
+          | :list_pairings
 
   @doc """
     integer_from_method(method)
 
     Returns the integer value associated with the TLVMethod atom.
   """
-  @spec integer_from_method(tlv_method) :: integer  
+  @spec integer_from_method(method) :: integer
   def integer_from_method(method) do
     case method do
       :reserved -> 0x00
@@ -43,7 +49,7 @@ defmodule HAP.TLV.TLVMethod do
 
   Returns the TLVMethod atom associated with the given integer.
   """
-  @spec method_from_integer(integer) :: tlv_method
+  @spec method_from_integer(integer) :: method
   def method_from_integer(integer) do
     case integer do
       0x00 -> :pair_setup_non_mfi
@@ -56,21 +62,21 @@ defmodule HAP.TLV.TLVMethod do
     end
   end
 
-  @spec pair_setup_non_mfi :: tlv_method
+  @spec pair_setup_non_mfi :: method
   def pair_setup_non_mfi, do: :pair_setup_non_mfi
 
-  @spec pair_setup :: tlv_method  
+  @spec pair_setup :: method
   def pair_setup, do: :pair_setup
-  
-  @spec pair_verify :: tlv_method  
+
+  @spec pair_verify :: method
   def pair_verify, do: :pair_verify
-  
-  @spec add_pairing :: tlv_method
+
+  @spec add_pairing :: method
   def add_pairing, do: :add_pairing
-  
-  @spec remove_pairing :: tlv_method
+
+  @spec remove_pairing :: method
   def remove_pairing, do: :remove_pairing
-  
-  @spec list_pairings :: tlv_method
-	def list_pairings, do: :list_pairings
+
+  @spec list_pairings :: method
+  def list_pairings, do: :list_pairings
 end

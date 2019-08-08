@@ -1,11 +1,13 @@
 #!/bin/bash
 
 echo -e "architecture: \c "
-read
-export MIX_TARGET=$REPLY
+read arch
 echo -e "SSID: \c "
-read
-export NERVES_NETWORK_SSID=$REPLY
+read ssid
 echo -e "password: \c "
-read
-export NERVES_NETWORK_PSK=$REPLY
+read pass
+
+echo Copy/paste the following:
+echo export MIX_TARGET=$arch
+echo export NERVES_NETWORK_SSID=$ssid
+echo export NERVES_NETWORK_PSK=$pass

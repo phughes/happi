@@ -18,6 +18,7 @@ defmodule HAP.Pairing do
   use GenServer
   require Logger
   require HKDF
+
   alias HAP.Pairing.Crypto
   alias HAP.Pairing.Impl
 
@@ -44,7 +45,7 @@ defmodule HAP.Pairing do
   def handle_call({:pairing_m1, ip_address}, _from, state) do
     username = "Pair-Setup"
     {:ok, password} = Impl.setup_code()
-    Logger.info("Setup code: #{inspect(password)}")
+    Logger.debug("Setup code: #{inspect(password)}")
 
     salt = Crypto.salt()
     derrived_key = Crypto.derrived_key(username, password, salt)
@@ -81,6 +82,7 @@ defmodule HAP.Pairing do
 
     session_key =
       Crypto.host_premaster_secret(verifier, host_public_key, private_key, client_public_key)
+
     proof =
       Crypto.client_session_proof(username, salt, client_public_key, host_public_key, session_key)
 
@@ -98,7 +100,7 @@ defmodule HAP.Pairing do
   end
 
   def handle_call({:pairing_m5, {ip_address, encrypted_data}}, _from, state) do
-    %{session_key: session_key} = state[ip_address]    
+    %{session_key: session_key} = state[ip_address]
     pairing_id = Impl.pairing_id()
     {ltpk, ltsk} = Impl.keypair()
 

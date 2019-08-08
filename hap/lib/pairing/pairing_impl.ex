@@ -21,37 +21,50 @@ defmodule HAP.Pairing.Impl do
 
   alias HAP.TLV
 
-  @path "#{Application.get_env(:hap, HAP.Pairing.Impl)[:user_partition]}/happi/"
   @setup_code_filename "setup_code.txt"
   @pairing_id_filename "pairing_id.txt"
   @pairings_directory_name "pairings/"
   @keypair_filename "keypair.bin"
 
-  @debug_path "#{Application.get_env(:hap, HAP.Pairing.Impl)[:user_partition]}/debug/"
+  @doc """
+    path()
+    Happi's home directory inside the user's home directory.
+  """
+  def path() do
+    Path.expand("~/happi/") <> "/"
+  end
+
+  @doc """
+    debug_path()
+    A folder inside Happi's home directory for writing test data to.
+  """
+  def debug_path() do
+    Path.expand("~/happi/debug/") <> "/"
+  end
 
   @doc """
     setup()
     Initializes the happi directory if it hasn't been created yet.
   """
   def setup() do
-    if File.dir?(@path) == false do
-      File.mkdir(@path)
+    if File.dir?(path()) == false do
+      File.mkdir(path())
     end
 
-    if File.exists?(@path <> @setup_code_filename) == false do
+    if File.exists?(path() <> @setup_code_filename) == false do
       Logger.info("Writing new setup code.")
-      File.write!(@path <> @setup_code_filename, generate_setup_code())
+      File.write!(path() <> @setup_code_filename, generate_setup_code())
     end
 
-    if File.exists?(@path <> @pairing_id_filename) == false do
+    if File.exists?(path() <> @pairing_id_filename) == false do
       Logger.info("Writing new pairing ID.")
-      File.write!(@path <> @pairing_id_filename, generate_pairing_id())
+      File.write!(path() <> @pairing_id_filename, generate_pairing_id())
     end
 
-    if File.exists?(@path <> @keypair_filename) == false do
+    if File.exists?(path() <> @keypair_filename) == false do
       Logger.info("Writing new keypair.")
       {:ok, public, secret} = Ed25519.keypair()
-      File.write!(@path <> @keypair_filename, public <> secret)
+      File.write!(path() <> @keypair_filename, public <> secret)
     end
   end
 
@@ -67,7 +80,7 @@ defmodule HAP.Pairing.Impl do
   """
   @spec reset() :: atom
   def reset() do
-    File.rm_rf!(@path)
+    File.rm_rf!(path())
     setup()
   end
 
@@ -75,7 +88,7 @@ defmodule HAP.Pairing.Impl do
 
   """
   def setup_code() do
-    File.read(@path <> @setup_code_filename)
+    File.read(path() <> @setup_code_filename)
   end
 
   defp generate_setup_code() do
@@ -130,7 +143,7 @@ defmodule HAP.Pairing.Impl do
     It should be of the format: 66:72:0B:39:D7:8F
   """
   def pairing_id() do
-    File.read!(@path <> @pairing_id_filename)
+    File.read!(path() <> @pairing_id_filename)
   end
 
   defp generate_pairing_id() do
@@ -149,26 +162,26 @@ defmodule HAP.Pairing.Impl do
   """
   @spec keypair() :: {binary, binary}
   def keypair() do
-    <<public::binary-size(32), secret::binary-size(32)>> = File.read!(@path <> @keypair_filename)
+    <<public::binary-size(32), secret::binary-size(32)>> = File.read!(path() <> @keypair_filename)
     {public, secret}
   end
 
   def save_device_key(device_id, key) do
-    File.write!(@path <> @pairings_directory_name <> device_id <> ".bin", key)
+    File.write!(path() <> @pairings_directory_name <> device_id <> ".bin", key)
   end
 
   @spec device_key(binary) :: {atom, binary}
   def device_key(device_id) do
-    File.read(@path <> @pairings_directory_name <> device_id <> ".bin")
+    File.read(path() <> @pairings_directory_name <> device_id <> ".bin")
   end
 
   def m5_decrypt(encrypted_data, session_key) do
-    if File.dir?(@debug_path) == false do
-      File.mkdir(@debug_path)
+    if File.dir?(debug_path()) == false do
+      File.mkdir(debug_path())
     end
 
-    File.write!(@debug_path <> "key.bin", session_key)
-    File.write!(@debug_path <> "data.bin", encrypted_data)
+    File.write!(debug_path() <> "key.bin", session_key)
+    File.write!(debug_path() <> "data.bin", encrypted_data)
     nonce = "PS-Msg05"
     aad = <<>>
     nsec = nil

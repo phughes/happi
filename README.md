@@ -8,13 +8,13 @@ happi aims to expose the GPIO pins of a Raspberry Pi as HomeKit accessories via 
 * TLV library. ✅
 * SRP support. ✅
 * Bonjour support. ✅
+* nerves\_init\_gadget: Remove my custom init & bonjour setup in favor of nerves\_init\_gadget. ✅
 ### 0.2 Initial pairing support
 * pair_setup: Allow pairing of new iOS devices. Almost. Pairing fails at m5.
 ### 0.3 Full pairing support
 * add\_pairing endpoint.
 * pairings endpoint.
 * identify endpoint.
-* nerves\_init\_gadget: Remove my custom init & bonjour setup in favor of nerves\_init\_gadget.
 ### 0.4 Accessory support
 * accessories endpoint.
 * characteristics endpoint.

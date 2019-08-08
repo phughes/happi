@@ -1,21 +1,20 @@
-# HomeKit Accessory Protocol module 
+# HomeKit Accessory Protocol module
 
 The HAP module contains code for authenticating as a HomeKit accessory, serializing data and sending and receiving HomeKit messages.
 
-## Installation
+To start your Phoenix server:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `hap` to your list of dependencies in `mix.exs`:
+  * Install dependencies with `mix deps.get`
+  * Start Phoenix endpoint with `mix phx.server`
 
-```elixir
-def deps do
-  [
-    {:hap, "~> 0.1.0"}
-  ]
-end
-```
+Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/hap](https://hexdocs.pm/hap).
+Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
+## Learn more
+
+  * Official website: http://www.phoenixframework.org/
+  * Guides: https://hexdocs.pm/phoenix/overview.html
+  * Docs: https://hexdocs.pm/phoenix
+  * Mailing list: http://groups.google.com/group/phoenix-talk
+  * Source: https://github.com/phoenixframework/phoenix
