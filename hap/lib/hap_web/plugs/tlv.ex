@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-defmodule Ui.Plugs.DecodeTLV do
+defmodule HapWeb.Plugs.DecodeTLV do
   import Plug.Conn
 
   alias HAP.TLV
@@ -25,8 +25,7 @@ defmodule Ui.Plugs.DecodeTLV do
   def call(conn, _options) do
     {:ok, body, conn} = Plug.Conn.read_body(conn, length: 1_000_000)
     tlvs = TLV.decode(body)
-    Logger.info "TLVs: #{inspect(tlvs)}"
+    Logger.info("TLVs: #{inspect(tlvs)}")
     assign(conn, :tlvs, tlvs)
   end
-
 end

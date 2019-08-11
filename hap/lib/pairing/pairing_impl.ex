@@ -162,7 +162,7 @@ defmodule HAP.Pairing.Impl do
   """
   @spec keypair() :: {binary, binary}
   def keypair() do
-    <<public::binary-size(32), secret::binary-size(32)>> = File.read!(path() <> @keypair_filename)
+    <<public::binary-size(32), secret::binary-size(64)>> = File.read!(path() <> @keypair_filename)
     {public, secret}
   end
 
