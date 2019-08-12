@@ -7,7 +7,6 @@ read ssid
 echo -e "password: \c "
 read pass
 
-echo Copy/paste the following:
-echo export MIX_TARGET=$arch
-echo export NERVES_NETWORK_SSID=$ssid
-echo export NERVES_NETWORK_PSK=$pass
+export MIX_TARGET="$arch"
+export NERVES_NETWORK_SSID="$ssid"
+export NERVES_NETWORK_PSK="$pass"
